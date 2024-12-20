@@ -15,17 +15,48 @@ local conf = require("telescope.config").values
 local action_state = require("telescope.actions.state")
 local action_set = require("telescope.actions.set")
 
+local function filter_bookmarks(array, filter)
+    if filter == nil or filter == "" then
+        return array
+    end
+
+    -- Determine the path prefix based on the filter.
+    local path_prefix = filter
+    if filter == "git" then
+        local cmd = vim.system({ "git", "rev-parse", "--show-toplevel" }, { text = true }):wait()
+        if cmd.code ~= 0 then
+            -- Skip filtering if the folder is not a git repository
+            return array
+        end
+        -- Trim trailing newline.
+        path_prefix = string.gsub(cmd.stdout, "\n", "")
+    elseif filter == "cwd" then
+        path_prefix = vim.fn.getcwd()
+    end
+
+    local result = {}
+    for _, value in ipairs(array) do
+        if string.sub(value.location.path, 1, #path_prefix) == path_prefix then
+            table.insert(result, value)
+        end
+    end
+
+    return result
+end
+
+
 local M = {}
 
 ---Pick a *bookmark* then call the callback function against it
 ---e.g.
 ---:lua require("bookmarks.picker").pick_bookmark(function(bookmark) vim.print(bookmark.name) end)
 ---@param callback fun(bookmark: Bookmarks.Node): nil
----@param opts? {prompt?: string}
+---@param opts? {prompt?: string, filter?: nil|string|'"git"'|'"cwd"'}
 function M.pick_bookmark(callback, opts)
   opts = opts or {}
 
   local function start_picker(_bookmarks, list)
+    _bookmarks = filter_bookmarks(_bookmarks, opts.filter)
     pickers
       .new(opts, {
         prompt_title = opts.prompt or ("Bookmarks in [" .. list.name .. "] "),

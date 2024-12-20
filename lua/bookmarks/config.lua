@@ -31,6 +31,13 @@ local default_config = {
     -- Or provide custom sort function
     ---@type: string | fun(bookmarks: Bookmarks.Bookmark[]): nil
     sort_by = "last_visited",
+    -- filter for telescope picker based of bookmark location.
+    -- - git: it will use the git project as filter
+    -- - cwd: it will use the cwd as filter
+    -- - "/custom": or a custom prefix
+    -- - nil: it will show all the bookmarks
+    ---@type: nil|string|'"git"'|'"cwd"'
+    filter = nil
   },
 
   -- Bookmark position calibration

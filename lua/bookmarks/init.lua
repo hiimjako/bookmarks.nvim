@@ -23,12 +23,15 @@ M.toggle_mark = function()
 end
 
 M.goto_bookmark = function()
+  local filter = (vim.g.bookmarks_config.picker or { filter = nil }).filter
   Picker.pick_bookmark(function(bookmark)
     if bookmark then
       Service.goto_bookmark(bookmark.id)
       Sign.safe_refresh_signs()
     end
-  end)
+  end, {
+    filter = filter
+  })
 end
 
 M.grep_bookmarks = function()
